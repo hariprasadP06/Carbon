@@ -5,13 +5,11 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const app = new Hono();
 
-// Get all students
 app.get("/students", async (c) => {
   const students = await prisma.student.findMany();
   return c.json(students);
 });
 
-// Get all students with proctor details
 app.get("/students/enriched", async (c) => {
   const students = await prisma.student.findMany({
     include: { proctor: true },
@@ -19,13 +17,11 @@ app.get("/students/enriched", async (c) => {
   return c.json(students);
 });
 
-// Get all professors
 app.get("/professors", async (c) => {
   const professors = await prisma.professor.findMany();
   return c.json(professors);
 });
 
-// Create a new student (Ensure no duplicate AadharNumber)
 app.post("/students", async (c) => {
   const { name, dateOfBirth, aadharNumber, proctorId } = await c.req.json();
   try {
@@ -43,7 +39,6 @@ app.post("/students", async (c) => {
   }
 });
 
-// Create a new professor (Ensure no duplicate AadharNumber)
 app.post("/professors", async (c) => {
   const { name, seniority, aadharNumber } = await c.req.json();
   try {
@@ -56,7 +51,6 @@ app.post("/professors", async (c) => {
   }
 });
 
-// Get all students under a professor's proctorship
 app.get("/professors/:professorId/proctorships", async (c) => {
   const professorId = c.req.param("professorId");
   const students = await prisma.student.findMany({
@@ -65,7 +59,6 @@ app.get("/professors/:professorId/proctorships", async (c) => {
   return c.json(students);
 });
 
-// Update student details
 app.patch("/students/:studentId", async (c) => {
   const studentId = c.req.param("studentId");
   const data = await c.req.json();
@@ -77,7 +70,6 @@ app.patch("/students/:studentId", async (c) => {
   return c.json(updatedStudent);
 });
 
-// Update professor details
 app.patch("/professors/:professorId", async (c) => {
   const professorId = c.req.param("professorId");
   const data = await c.req.json();
@@ -88,21 +80,18 @@ app.patch("/professors/:professorId", async (c) => {
   return c.json(updatedProfessor);
 });
 
-// Delete student
 app.delete("/students/:studentId", async (c) => {
   const studentId = c.req.param("studentId");
   await prisma.student.delete({ where: { id: studentId } });
   return c.status(204).body(null);
 });
 
-// Delete professor
 app.delete("/professors/:professorId", async (c) => {
   const professorId = c.req.param("professorId");
   await prisma.professor.delete({ where: { id: professorId } });
   return c.status(204).body(null);
 });
 
-// Assign student under a professor’s proctorship
 app.post("/professors/:professorId/proctorships", async (c) => {
   const professorId = c.req.param("professorId");
   const { studentId } = await c.req.json();
@@ -117,7 +106,6 @@ app.post("/professors/:professorId/proctorships", async (c) => {
   }
 });
 
-// Get student's library membership
 app.get("/students/:studentId/library-membership", async (c) => {
   const studentId = c.req.param("studentId");
   const membership = await prisma.libraryMembership.findUnique({
@@ -127,7 +115,6 @@ app.get("/students/:studentId/library-membership", async (c) => {
   return c.json(membership);
 });
 
-// Create library membership for a student
 app.post("/students/:studentId/library-membership", async (c) => {
   const studentId = c.req.param("studentId");
   const { issueDate, expiryDate } = await c.req.json();
@@ -146,7 +133,6 @@ app.post("/students/:studentId/library-membership", async (c) => {
   }
 });
 
-// Update library membership
 app.patch("/students/:studentId/library-membership", async (c) => {
   const studentId = c.req.param("studentId");
   const data = await c.req.json();
@@ -157,13 +143,11 @@ app.patch("/students/:studentId/library-membership", async (c) => {
   return c.json(updatedMembership);
 });
 
-// Delete library membership
 app.delete("/students/:studentId/library-membership", async (c) => {
   const studentId = c.req.param("studentId");
   await prisma.libraryMembership.delete({ where: { studentId } });
   return c.status(204).body(null);
 });
 
-// Start server
 serve(app);
 console.log("Server running on http://localhost:3000");
